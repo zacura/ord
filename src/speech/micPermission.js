@@ -5,6 +5,10 @@ export const MIC_MESSAGES = {
     'Microphone access is blocked. Allow it in your browser settings, or tap "I said it" after saying the word.',
   unavailable:
     'Speech recognition is not available here. Tap "I said it" after saying the word.',
+  loadingModel:
+    'The voice model is still loading. Speech recognition listens until it is ready.',
+  modelFailed:
+    'The voice model could not load on this device. Speech recognition or "I said it" is used instead.',
 };
 
 // Must be called synchronously from a user gesture (the Start tap) so the browser shows the prompt.

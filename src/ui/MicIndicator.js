@@ -5,12 +5,14 @@ export const MIC_STATES = Object.freeze({
   LISTENING: 'listening',
   HEARD: 'heard',
   ERROR: 'error',
+  LOADING: 'loading',
 });
 
 const STATE_STYLE = {
   [MIC_STATES.LISTENING]: { color: 0x4fc3f7, text: 'Listening…' },
   [MIC_STATES.HEARD]: { color: 0x4caf50, text: 'Heard it!' },
   [MIC_STATES.ERROR]: { color: 0xf44336, text: 'Mic unavailable' },
+  [MIC_STATES.LOADING]: { color: 0xffb300, text: 'Loading voice model…' },
 };
 
 const DOT_RADIUS = 9;

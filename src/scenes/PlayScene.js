@@ -58,6 +58,7 @@ export class PlayScene {
     );
 
     this.detector.onError = () => this.render();
+    this.detectorKey = null;
     this.render();
   }
 
@@ -103,6 +104,8 @@ export class PlayScene {
       this.mic.setState(MIC_STATES.HEARD);
     } else if (this.detector.mode === 'self-report') {
       this.mic.setState(MIC_STATES.ERROR);
+    } else if (this.detector.modelStatus === 'loading') {
+      this.mic.setState(MIC_STATES.LOADING);
     } else {
       this.mic.setState(MIC_STATES.LISTENING);
     }
@@ -118,6 +121,12 @@ export class PlayScene {
   update(deltaMS) {
     if (this.game.state === GameState.PLAYING) {
       this.bar.setProgress(this.game.timer.progress);
+    }
+    // The detector can switch tiers mid-round when the model finishes loading.
+    const detectorKey = `${this.detector.mode}|${this.detector.modelStatus}`;
+    if (detectorKey !== this.detectorKey) {
+      this.detectorKey = detectorKey;
+      this.render();
     }
     this.wordLabel.update(deltaMS);
     this.mic.update(deltaMS);

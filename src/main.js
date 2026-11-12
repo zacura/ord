@@ -49,6 +49,7 @@ async function start() {
       if (state === GameState.COUNTDOWN) {
         scenes.show(new PlayScene({ game, detector, reducedMotion }));
       } else if (state === GameState.RESULTS) {
+        detector.releaseAudio();
         releaseMicStream();
         stats = recordResults(stats, game.results);
         saveStats(stats);
@@ -72,6 +73,7 @@ async function start() {
     new MenuScene({
       difficulty: loadDifficulty(),
       reducedMotion,
+      detector,
       onSelectDifficulty: (id) => saveDifficulty(id),
       onToggleReducedMotion: (enabled) => {
         reducedMotion = enabled;
@@ -90,7 +92,8 @@ async function start() {
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) releaseMicStream();
+    if (document.hidden) detector.pauseAudio();
+    else detector.resumeAudio();
   });
 
   return { app, scenes };

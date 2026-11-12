@@ -11,14 +11,34 @@ const DIFFICULTY_BUTTON_GAP = 6;
 
 export class MenuScene {
   // onStart runs synchronously inside the Start tap, so the mic prompt counts as a user gesture.
-  constructor({ difficulty, reducedMotion = false, onSelectDifficulty, onToggleReducedMotion, onStart }) {
+  constructor({ difficulty, reducedMotion = false, detector = null, onSelectDifficulty, onToggleReducedMotion, onStart }) {
     this.difficulty = difficulty;
     this.reducedMotion = reducedMotion;
+    this.detector = detector;
     this.onSelectDifficulty = onSelectDifficulty;
     this.onToggleReducedMotion = onToggleReducedMotion;
     this.onStart = onStart;
     this.container = new Container();
+    this.statusText = null;
     this.buildLayout();
+
+    // Taps bubble up from the buttons, so the first tap anywhere on the menu starts the model download.
+    this.container.eventMode = 'static';
+    this.container.on('pointertap', () => this.detector?.preload());
+  }
+
+  update() {
+    const text = this.voiceModelStatus();
+    if (this.statusText && this.statusText.text !== text) this.statusText.text = text;
+  }
+
+  voiceModelStatus() {
+    if (this.detector?.modelStatus === 'loading') {
+      return `Loading voice model… ${Math.round(this.detector.modelProgress ?? 0)}%`;
+    }
+    if (this.detector?.modelStatus === 'ready') return 'Voice model ready';
+    if (this.detector?.modelStatus === 'failed') return 'Voice model unavailable on this device';
+    return '';
   }
 
   selectDifficulty(id) {
@@ -101,6 +121,13 @@ export class MenuScene {
     });
     start.position.set((DESIGN_WIDTH - 220) / 2, DESIGN_HEIGHT * 0.8);
 
-    this.container.addChild(title, subtitle, instructions, ...difficultyButtons, motion, start);
+    this.statusText = new Text({
+      text: this.voiceModelStatus(),
+      style: { fontFamily: GAME_FONT, fontWeight: '700', fontSize: 16, fill: '#9aa3b2' },
+    });
+    this.statusText.anchor.set(0.5);
+    this.statusText.position.set(DESIGN_WIDTH / 2, DESIGN_HEIGHT * 0.94);
+
+    this.container.addChild(title, subtitle, instructions, ...difficultyButtons, motion, start, this.statusText);
   }
 }
