@@ -11,9 +11,10 @@ function easeOutBack(t) {
 }
 
 export class WordLabel extends Container {
-  constructor({ maxWidth, fontSize = 88 }) {
+  constructor({ maxWidth, fontSize = 88, reducedMotion = false }) {
     super();
     this.maxWidth = maxWidth;
+    this.reducedMotion = reducedMotion;
     this.fitScale = 1;
     this.popElapsed = POP_MS;
 
@@ -30,8 +31,8 @@ export class WordLabel extends Container {
     this.label.text = word;
     this.label.scale.set(1);
     this.fitScale = Math.min(1, this.maxWidth / this.label.width);
-    this.popElapsed = 0;
-    this.applyScale(POP_START_SCALE);
+    this.popElapsed = this.reducedMotion ? POP_MS : 0;
+    this.applyScale(this.reducedMotion ? 1 : POP_START_SCALE);
   }
 
   update(deltaMS) {

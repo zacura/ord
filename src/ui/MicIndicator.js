@@ -17,9 +17,10 @@ const DOT_RADIUS = 9;
 const PULSE_MS = 900;
 
 export class MicIndicator extends Container {
-  constructor({ fontSize = 20 } = {}) {
+  constructor({ fontSize = 20, reducedMotion = false } = {}) {
     super();
     this.state = null;
+    this.reducedMotion = reducedMotion;
     this.pulseElapsed = 0;
 
     this.dot = new Graphics();
@@ -46,7 +47,7 @@ export class MicIndicator extends Container {
   }
 
   update(deltaMS) {
-    if (this.state !== MIC_STATES.LISTENING) return;
+    if (this.state !== MIC_STATES.LISTENING || this.reducedMotion) return;
 
     this.pulseElapsed = (this.pulseElapsed + deltaMS) % PULSE_MS;
     const phase = Math.sin((this.pulseElapsed / PULSE_MS) * Math.PI * 2);

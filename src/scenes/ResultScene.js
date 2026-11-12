@@ -2,6 +2,7 @@ import { Container, Text } from 'pixi.js';
 import { GAME_FONT } from '../fonts.js';
 import { DESIGN_WIDTH, DESIGN_HEIGHT } from '../layout.js';
 import { Button } from '../ui/Button.js';
+import { announce } from '../ui/announce.js';
 
 export const MAX_LISTED_MISSES = 10;
 
@@ -16,7 +17,9 @@ export class ResultScene {
   constructor({ results, bestScore = 0, onPlayAgain }) {
     this.onPlayAgain = onPlayAgain;
     this.container = new Container();
-    this.buildLayout(summarize(results), bestScore);
+    const summary = summarize(results);
+    this.buildLayout(summary, bestScore);
+    announce(`Session finished. Heard ${summary.heard}, missed ${summary.missed.length}.`);
   }
 
   buildLayout({ heard, missed }, bestScore) {

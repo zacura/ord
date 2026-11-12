@@ -4,16 +4,18 @@ import { DESIGN_WIDTH, DESIGN_HEIGHT } from '../layout.js';
 import { Button } from '../ui/Button.js';
 import { DIFFICULTIES } from '../game/difficulty.js';
 
-const SELECTED_COLOR = 0x3f7cff;
+const SELECTED_COLOR = 0x2d6bd6;
 const UNSELECTED_COLOR = 0x2a2f3a;
 const DIFFICULTY_BUTTON_WIDTH = 104;
 const DIFFICULTY_BUTTON_GAP = 6;
 
 export class MenuScene {
   // onStart runs synchronously inside the Start tap, so the mic prompt counts as a user gesture.
-  constructor({ difficulty, onSelectDifficulty, onStart }) {
+  constructor({ difficulty, reducedMotion = false, onSelectDifficulty, onToggleReducedMotion, onStart }) {
     this.difficulty = difficulty;
+    this.reducedMotion = reducedMotion;
     this.onSelectDifficulty = onSelectDifficulty;
+    this.onToggleReducedMotion = onToggleReducedMotion;
     this.onStart = onStart;
     this.container = new Container();
     this.buildLayout();
@@ -22,6 +24,16 @@ export class MenuScene {
   selectDifficulty(id) {
     this.difficulty = id;
     this.onSelectDifficulty?.(id);
+    this.rebuild();
+  }
+
+  toggleReducedMotion() {
+    this.reducedMotion = !this.reducedMotion;
+    this.onToggleReducedMotion?.(this.reducedMotion);
+    this.rebuild();
+  }
+
+  rebuild() {
     this.container.removeChildren().forEach((child) => child.destroy({ children: true }));
     this.buildLayout();
   }
@@ -72,6 +84,15 @@ export class MenuScene {
       return button;
     });
 
+    const motion = new Button({
+      label: `Reduce motion: ${this.reducedMotion ? 'On' : 'Off'}`,
+      width: 260,
+      height: 48,
+      color: UNSELECTED_COLOR,
+      onTap: () => this.toggleReducedMotion(),
+    });
+    motion.position.set((DESIGN_WIDTH - 260) / 2, DESIGN_HEIGHT * 0.7);
+
     const start = new Button({
       label: 'Start',
       width: 220,
@@ -80,6 +101,6 @@ export class MenuScene {
     });
     start.position.set((DESIGN_WIDTH - 220) / 2, DESIGN_HEIGHT * 0.8);
 
-    this.container.addChild(title, subtitle, instructions, ...difficultyButtons, start);
+    this.container.addChild(title, subtitle, instructions, ...difficultyButtons, motion, start);
   }
 }

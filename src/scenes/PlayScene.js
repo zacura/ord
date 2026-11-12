@@ -7,31 +7,32 @@ import { ProgressBar } from '../ui/ProgressBar.js';
 import { MicIndicator, MIC_STATES } from '../ui/MicIndicator.js';
 import { FeedbackFlash } from '../ui/FeedbackFlash.js';
 import { Button } from '../ui/Button.js';
+import { announce } from '../ui/announce.js';
 
 const BAR_WIDTH = 300;
 
 export class PlayScene {
-  constructor({ game, detector }) {
+  constructor({ game, detector, reducedMotion = false }) {
     this.game = game;
     this.detector = detector;
     this.container = new Container();
 
     this.score = this.text({ fontSize: 22, color: '#e6e8ee' }, DESIGN_HEIGHT * 0.08);
     this.status = this.text({ fontSize: 30, color: '#9aa3b2' }, DESIGN_HEIGHT * 0.4, 'Get ready…');
-    this.wordLabel = new WordLabel({ maxWidth: DESIGN_WIDTH - 40 });
+    this.wordLabel = new WordLabel({ maxWidth: DESIGN_WIDTH - 40, reducedMotion });
     this.wordLabel.position.set(DESIGN_WIDTH / 2, DESIGN_HEIGHT * 0.4);
 
     this.bar = new ProgressBar({ width: BAR_WIDTH });
     this.bar.position.set((DESIGN_WIDTH - BAR_WIDTH) / 2, DESIGN_HEIGHT * 0.52);
 
-    this.mic = new MicIndicator();
+    this.mic = new MicIndicator({ reducedMotion });
     this.mic.position.set(0, DESIGN_HEIGHT * 0.6);
 
     this.saidButton = new Button({
       label: 'I said it',
       width: 220,
       height: 64,
-      color: 0x2e9d5b,
+      color: 0x21784a,
       onTap: () => this.detector.confirm(),
     });
     this.saidButton.position.set((DESIGN_WIDTH - 220) / 2, DESIGN_HEIGHT * 0.72);
@@ -45,7 +46,7 @@ export class PlayScene {
     });
     this.endButton.position.set((DESIGN_WIDTH - 160) / 2, DESIGN_HEIGHT * 0.88);
 
-    this.flash = new FeedbackFlash({ width: DESIGN_WIDTH, height: DESIGN_HEIGHT });
+    this.flash = new FeedbackFlash({ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, reducedMotion });
 
     this.container.addChild(
       this.wordLabel,
@@ -73,8 +74,15 @@ export class PlayScene {
 
   // Called by main.js on every Game state change.
   handleState(state) {
-    if (state === GameState.PLAYING) this.wordLabel.show(this.game.word.word);
-    if (state === GameState.FEEDBACK) this.flash.play(this.game.lastResult.outcome);
+    if (state === GameState.PLAYING) {
+      this.wordLabel.show(this.game.word.word);
+      announce(`Say: ${this.game.word.word}`);
+    }
+    if (state === GameState.FEEDBACK) {
+      const { outcome, word } = this.game.lastResult;
+      this.flash.play(outcome);
+      announce(`${outcome === 'heard' ? 'Heard' : 'Missed'}: ${word.word}`);
+    }
     this.render();
   }
 

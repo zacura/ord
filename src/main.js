@@ -9,6 +9,7 @@ import { ResultScene } from './scenes/ResultScene.js';
 import { Game, GameState } from './game/Game.js';
 import { loadStats, saveStats, recordResults, missWeight } from './game/stats.js';
 import { loadDifficulty, saveDifficulty, wordsForDifficulty } from './game/difficulty.js';
+import { loadReducedMotion, saveReducedMotion } from './game/motion.js';
 import { WORDS } from './data/words.js';
 import { createSpeechDetector } from './speech/createSpeechDetector.js';
 
@@ -31,13 +32,14 @@ async function start() {
 
   const detector = createSpeechDetector();
   let stats = loadStats();
+  let reducedMotion = loadReducedMotion();
   const game = new Game({
     words: WORDS,
     detector,
     weightOf: (entry) => missWeight(stats, entry.word),
     onStateChange: (state) => {
       if (state === GameState.COUNTDOWN) {
-        scenes.show(new PlayScene({ game, detector }));
+        scenes.show(new PlayScene({ game, detector, reducedMotion }));
       } else if (state === GameState.RESULTS) {
         stats = recordResults(stats, game.results);
         saveStats(stats);
@@ -53,7 +55,12 @@ async function start() {
   scenes.show(
     new MenuScene({
       difficulty: loadDifficulty(),
+      reducedMotion,
       onSelectDifficulty: (id) => saveDifficulty(id),
+      onToggleReducedMotion: (enabled) => {
+        reducedMotion = enabled;
+        saveReducedMotion(enabled);
+      },
       onStart: (id) => {
         detector.prepare();
         game.start(wordsForDifficulty(WORDS, id));
