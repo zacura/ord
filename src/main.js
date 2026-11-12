@@ -12,6 +12,8 @@ import { loadDifficulty, saveDifficulty, wordsForDifficulty } from './game/diffi
 import { loadReducedMotion, saveReducedMotion } from './game/motion.js';
 import { WORDS } from './data/words.js';
 import { createSpeechDetector } from './speech/createSpeechDetector.js';
+import { releaseMicStream } from './speech/micStream.js';
+import { unlockAudio } from './speech/audioCapture.js';
 
 async function start() {
   await loadFonts();
@@ -31,6 +33,12 @@ async function start() {
   const scenes = new SceneManager(world);
 
   const detector = createSpeechDetector();
+  // Runs synchronously inside the Start / Play again tap, so the mic prompt and audio unlock are allowed.
+  const beginRound = () => {
+    detector.prepare();
+    unlockAudio();
+  };
+
   let stats = loadStats();
   let reducedMotion = loadReducedMotion();
   const game = new Game({
@@ -41,10 +49,18 @@ async function start() {
       if (state === GameState.COUNTDOWN) {
         scenes.show(new PlayScene({ game, detector, reducedMotion }));
       } else if (state === GameState.RESULTS) {
+        releaseMicStream();
         stats = recordResults(stats, game.results);
         saveStats(stats);
         scenes.show(
-          new ResultScene({ results: game.results, bestScore: stats.bestScore, onPlayAgain: () => game.playAgain() }),
+          new ResultScene({
+            results: game.results,
+            bestScore: stats.bestScore,
+            onPlayAgain: () => {
+              beginRound();
+              game.playAgain();
+            },
+          }),
         );
       } else {
         scenes.current?.handleState?.(state);
@@ -62,7 +78,7 @@ async function start() {
         saveReducedMotion(enabled);
       },
       onStart: (id) => {
-        detector.prepare();
+        beginRound();
         game.start(wordsForDifficulty(WORDS, id));
       },
     }),
@@ -71,6 +87,10 @@ async function start() {
   app.ticker.add(({ deltaMS }) => {
     game.update(deltaMS);
     scenes.update(deltaMS);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) releaseMicStream();
   });
 
   return { app, scenes };

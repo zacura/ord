@@ -1,3 +1,5 @@
+import { acquireMicStream } from './micStream.js';
+
 export const MIC_MESSAGES = {
   denied:
     'Microphone access is blocked. Allow it in your browser settings, or tap "I said it" after saying the word.',
@@ -6,12 +8,12 @@ export const MIC_MESSAGES = {
 };
 
 // Must be called synchronously from a user gesture (the Start tap) so the browser shows the prompt.
+// The granted stream stays open in micStream.js for the round; it is not stopped here.
 export async function requestMicrophone() {
   if (!navigator.mediaDevices?.getUserMedia) return 'unavailable';
 
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    stream.getTracks().forEach((track) => track.stop());
+    await acquireMicStream();
     return 'granted';
   } catch (error) {
     return error.name === 'NotAllowedError' || error.name === 'SecurityError' ? 'denied' : 'unavailable';

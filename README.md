@@ -35,3 +35,7 @@ Opening the site on a phone then lets you use *Add to Home Screen* (Android Chro
 ## Offline play
 
 In production builds, `public/sw.js` caches the game files after the first visit, so the game loads without a network connection. The speech recognizer in Chrome and Safari may still need a connection; without one the game falls back to the *I said it* self-report button. A new deployment is picked up on the next visit (navigations are network-first).
+
+## Speech model license
+
+The planned on-device speech model is [`KBLab/kb-whisper-tiny`](https://huggingface.co/KBLab/kb-whisper-tiny) from the National Library of Sweden (KBLab), a Swedish fine-tune of `openai/whisper-tiny`. It is licensed under the **Apache License 2.0**. Its model files are downloaded at development and build time and are not committed to this repository.
