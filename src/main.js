@@ -1,9 +1,12 @@
 import { Application } from 'pixi.js';
 import './style.css';
+import { loadFonts } from './fonts.js';
 import { createWorld } from './layout.js';
 import { SceneManager } from './scenes/SceneManager.js';
 
 async function start() {
+  await loadFonts();
+
   const gameElement = document.querySelector('#game');
   const app = new Application();
 
