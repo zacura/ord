@@ -33,14 +33,24 @@ async function start() {
   const scenes = new SceneManager(world);
 
   const detector = createSpeechDetector();
-  // Runs synchronously inside the Start / Play again tap, so the mic prompt and audio unlock are allowed.
-  const beginRound = () => {
-    detector.prepare();
-    unlockAudio();
-  };
 
   let stats = loadStats();
   let reducedMotion = loadReducedMotion();
+  // prepare() runs synchronously inside the Start / Play again tap, so the mic prompt and audio unlock are allowed.
+  // The round starts only once it resolves, i.e. after the voice model has loaded (or failed) and the mic is ready.
+  let roundPending = false;
+  const startRoundWhenReady = (startRound) => {
+    if (roundPending) return;
+    roundPending = true;
+    unlockAudio();
+    detector
+      .prepare()
+      .then(startRound)
+      .finally(() => {
+        roundPending = false;
+      });
+  };
+
   const game = new Game({
     words: WORDS,
     detector,
@@ -57,10 +67,7 @@ async function start() {
           new ResultScene({
             results: game.results,
             bestScore: stats.bestScore,
-            onPlayAgain: () => {
-              beginRound();
-              game.playAgain();
-            },
+            onPlayAgain: () => startRoundWhenReady(() => game.playAgain()),
           }),
         );
       } else {
@@ -79,10 +86,7 @@ async function start() {
         reducedMotion = enabled;
         saveReducedMotion(enabled);
       },
-      onStart: (id) => {
-        beginRound();
-        game.start(wordsForDifficulty(WORDS, id));
-      },
+      onStart: (id) => startRoundWhenReady(() => game.start(wordsForDifficulty(WORDS, id))),
     }),
   );
 
