@@ -69,7 +69,7 @@ export class Game {
   }
 
   playAgain() {
-    this.go(GameState.COUNTDOWN);
+    this.start();
   }
 
   update(deltaMS) {
