@@ -1,17 +1,26 @@
+import { Application } from 'pixi.js';
 import './style.css';
+import { createWorld } from './layout.js';
+import { SceneManager } from './scenes/SceneManager.js';
 
-const canvas = document.querySelector('#game-canvas');
-const context = canvas.getContext('2d');
+async function start() {
+  const gameElement = document.querySelector('#game');
+  const app = new Application();
 
-function resizeCanvas() {
-  const { width, height } = canvas.getBoundingClientRect();
-  const pixelRatio = window.devicePixelRatio || 1;
+  await app.init({
+    canvas: document.querySelector('#game-canvas'),
+    resizeTo: gameElement,
+    autoDensity: true,
+    resolution: window.devicePixelRatio || 1,
+    background: '#111318',
+  });
 
-  canvas.width = Math.round(width * pixelRatio);
-  canvas.height = Math.round(height * pixelRatio);
-  context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-  context.clearRect(0, 0, width, height);
+  const world = createWorld(app, gameElement);
+  const scenes = new SceneManager(world);
+
+  app.ticker.add(({ deltaMS }) => scenes.update(deltaMS));
+
+  return { app, scenes };
 }
 
-new ResizeObserver(resizeCanvas).observe(canvas);
-window.addEventListener('orientationchange', resizeCanvas);
+start();
