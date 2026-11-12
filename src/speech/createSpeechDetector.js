@@ -8,6 +8,11 @@ import { acquireMicStream, releaseMicStream } from './micStream.js';
 
 const LOW_MEMORY_GB = 2;
 
+// Asks the browser to keep the cached model under storage pressure. Best effort: the result is not needed.
+function requestPersistentStorage() {
+  navigator.storage?.persist?.().catch(() => {});
+}
+
 export function isWhisperSupported({ ignoreMemory = false } = {}) {
   if (typeof AudioWorkletNode === 'undefined' || typeof WebAssembly === 'undefined') return false;
   if (!navigator.mediaDevices?.getUserMedia) return false;
@@ -81,6 +86,7 @@ export class AutoSpeechDetector extends SpeechDetector {
   // Starts loading the model without the mic, so the menu can show progress before the round.
   preload() {
     if (!this.whisper) return;
+    requestPersistentStorage();
     this.loadModel().catch(() => {});
   }
 
