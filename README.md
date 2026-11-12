@@ -19,3 +19,19 @@ To open the dev server on a phone on the same network, use the network URL print
 npm run build
 npm run preview
 ```
+
+`npm run build` writes static files to `dist/`. Asset URLs are relative, so the output can be served from a domain root or a subpath.
+
+## Deploy
+
+The game is plain static files and must be served over HTTPS for microphone access. Any static host works:
+
+- **GitHub Pages:** the workflow in `.github/workflows/pages.yml` runs `npm ci`, `npm test` and `npm run build` on every push to `master` and deploys `dist/`. Pages must be enabled for the repo (the workflow turns it on with `actions/configure-pages`, `enablement: true`). Pages for private repos requires a paid GitHub plan.
+- **Netlify:** connect the repo with build command `npm run build` and publish directory `dist`.
+- **Manual:** run `npm run build` and upload the contents of `dist/` to any HTTPS host.
+
+Opening the site on a phone then lets you use *Add to Home Screen* (Android Chrome: menu → *Install app*; iOS Safari: Share → *Add to Home Screen*) to install it as a standalone app.
+
+## Offline play
+
+In production builds, `public/sw.js` caches the game files after the first visit, so the game loads without a network connection. The speech recognizer in Chrome and Safari may still need a connection; without one the game falls back to the *I said it* self-report button. A new deployment is picked up on the next visit (navigations are network-first).
