@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-To open the dev server on a phone on the same network, use the network URL printed by Vite.
+To open the dev server on a phone on the same network, use the network URL printed by Vite. The dev server uses a self-signed HTTPS certificate (via `@vitejs/plugin-basic-ssl`) because browsers only grant microphone access on HTTPS or `localhost`; accept the certificate warning once on the phone.
 
 ## Build
 
