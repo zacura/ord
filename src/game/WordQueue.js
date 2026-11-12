@@ -7,9 +7,17 @@ export function shuffle(items, random = Math.random) {
   return result;
 }
 
+// Weighted random ordering (Efraimidis–Spirakis): higher weights tend to come first.
+export function weightedShuffle(items, weightOf, random = Math.random) {
+  return items
+    .map((item) => ({ item, key: random() ** (1 / weightOf(item)) }))
+    .sort((a, b) => b.key - a.key)
+    .map(({ item }) => item);
+}
+
 export class WordQueue {
-  constructor(words, random = Math.random) {
-    this.items = shuffle(words, random);
+  constructor(words, random = Math.random, weightOf = null) {
+    this.items = weightOf ? weightedShuffle(words, weightOf, random) : shuffle(words, random);
     this.index = 0;
   }
 

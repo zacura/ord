@@ -21,10 +21,11 @@ const TRANSITIONS = {
 };
 
 export class Game {
-  constructor({ words, detector, onStateChange = null, random = Math.random }) {
+  constructor({ words, detector, onStateChange = null, random = Math.random, weightOf = null }) {
     this.words = words;
     this.detector = detector;
     this.random = random;
+    this.weightOf = weightOf;
     this.onStateChange = onStateChange;
     this.queue = null;
     this.word = null;
@@ -37,8 +38,9 @@ export class Game {
     this.handleVisibility = () => (globalThis.document?.hidden ? this.pause() : this.resume());
   }
 
-  start() {
-    this.queue = new WordQueue(this.words, this.random);
+  start(words = this.words) {
+    this.words = words;
+    this.queue = new WordQueue(this.words, this.random, this.weightOf);
     this.results = [];
     this.lastResult = null;
     globalThis.document?.addEventListener('visibilitychange', this.handleVisibility);
@@ -102,7 +104,7 @@ export class Game {
   // The list is endless: when every word has been shown, a new shuffled pass begins.
   nextWord() {
     if (!this.queue || this.queue.isDone()) {
-      this.queue = new WordQueue(this.words, this.random);
+      this.queue = new WordQueue(this.words, this.random, this.weightOf);
     }
     return this.queue.next();
   }

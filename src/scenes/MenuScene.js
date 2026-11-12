@@ -2,12 +2,27 @@ import { Container, Text } from 'pixi.js';
 import { GAME_FONT } from '../fonts.js';
 import { DESIGN_WIDTH, DESIGN_HEIGHT } from '../layout.js';
 import { Button } from '../ui/Button.js';
+import { DIFFICULTIES } from '../game/difficulty.js';
+
+const SELECTED_COLOR = 0x3f7cff;
+const UNSELECTED_COLOR = 0x2a2f3a;
+const DIFFICULTY_BUTTON_WIDTH = 104;
+const DIFFICULTY_BUTTON_GAP = 6;
 
 export class MenuScene {
   // onStart runs synchronously inside the Start tap, so the mic prompt counts as a user gesture.
-  constructor({ onStart }) {
+  constructor({ difficulty, onSelectDifficulty, onStart }) {
+    this.difficulty = difficulty;
+    this.onSelectDifficulty = onSelectDifficulty;
     this.onStart = onStart;
     this.container = new Container();
+    this.buildLayout();
+  }
+
+  selectDifficulty(id) {
+    this.difficulty = id;
+    this.onSelectDifficulty?.(id);
+    this.container.removeChildren().forEach((child) => child.destroy({ children: true }));
     this.buildLayout();
   }
 
@@ -39,16 +54,32 @@ export class MenuScene {
       },
     });
     instructions.anchor.set(0.5);
-    instructions.position.set(DESIGN_WIDTH / 2, DESIGN_HEIGHT * 0.55);
+    instructions.position.set(DESIGN_WIDTH / 2, DESIGN_HEIGHT * 0.5);
+
+    const rowWidth = DIFFICULTIES.length * DIFFICULTY_BUTTON_WIDTH + (DIFFICULTIES.length - 1) * DIFFICULTY_BUTTON_GAP;
+    const difficultyButtons = DIFFICULTIES.map((entry, index) => {
+      const button = new Button({
+        label: entry.label,
+        width: DIFFICULTY_BUTTON_WIDTH,
+        height: 56,
+        color: entry.id === this.difficulty ? SELECTED_COLOR : UNSELECTED_COLOR,
+        onTap: () => this.selectDifficulty(entry.id),
+      });
+      button.position.set(
+        (DESIGN_WIDTH - rowWidth) / 2 + index * (DIFFICULTY_BUTTON_WIDTH + DIFFICULTY_BUTTON_GAP),
+        DESIGN_HEIGHT * 0.6,
+      );
+      return button;
+    });
 
     const start = new Button({
       label: 'Start',
       width: 220,
       height: 64,
-      onTap: () => this.onStart?.(),
+      onTap: () => this.onStart?.(this.difficulty),
     });
-    start.position.set((DESIGN_WIDTH - 220) / 2, DESIGN_HEIGHT * 0.7);
+    start.position.set((DESIGN_WIDTH - 220) / 2, DESIGN_HEIGHT * 0.8);
 
-    this.container.addChild(title, subtitle, instructions, start);
+    this.container.addChild(title, subtitle, instructions, ...difficultyButtons, start);
   }
 }

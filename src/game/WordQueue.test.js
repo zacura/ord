@@ -26,4 +26,13 @@ describe('WordQueue', () => {
     new WordQueue(input);
     expect(input).toEqual(words);
   });
+
+  it('puts heavily weighted words first while still yielding each word once', () => {
+    const queue = new WordQueue(words, () => 0.5, (word) => (word === 'katt' ? 100 : 1));
+    const order = [];
+    while (!queue.isDone()) order.push(queue.next());
+
+    expect(order[0]).toBe('katt');
+    expect([...order].sort()).toEqual([...words].sort());
+  });
 });

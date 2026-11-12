@@ -12,14 +12,14 @@ function summarize(results) {
 }
 
 export class ResultScene {
-  // results are the entries from Game.results; onPlayAgain starts a new session.
-  constructor({ results, onPlayAgain }) {
+  // results are the entries from Game.results; bestScore is the best 'heard' count across sessions.
+  constructor({ results, bestScore = 0, onPlayAgain }) {
     this.onPlayAgain = onPlayAgain;
     this.container = new Container();
-    this.buildLayout(summarize(results));
+    this.buildLayout(summarize(results), bestScore);
   }
 
-  buildLayout({ heard, missed }) {
+  buildLayout({ heard, missed }, bestScore) {
     const centerX = DESIGN_WIDTH / 2;
     const style = (fontSize, fill) => ({
       fontFamily: GAME_FONT,
@@ -41,6 +41,10 @@ export class ResultScene {
     });
     score.anchor.set(0.5);
     score.position.set(centerX, DESIGN_HEIGHT * 0.25);
+
+    const best = new Text({ text: `Best: ${bestScore}`, style: style(20, '#9aa3b2') });
+    best.anchor.set(0.5);
+    best.position.set(centerX, DESIGN_HEIGHT * 0.3);
 
     const missedTitle = new Text({
       text: missed.length ? 'Missed words' : 'No missed words – well done!',
@@ -66,6 +70,6 @@ export class ResultScene {
     });
     playAgain.position.set((DESIGN_WIDTH - 220) / 2, DESIGN_HEIGHT * 0.8);
 
-    this.container.addChild(title, score, missedTitle, list, playAgain);
+    this.container.addChild(title, score, best, missedTitle, list, playAgain);
   }
 }

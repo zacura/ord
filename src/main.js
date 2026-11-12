@@ -7,6 +7,8 @@ import { MenuScene } from './scenes/MenuScene.js';
 import { PlayScene } from './scenes/PlayScene.js';
 import { ResultScene } from './scenes/ResultScene.js';
 import { Game, GameState } from './game/Game.js';
+import { loadStats, saveStats, recordResults, missWeight } from './game/stats.js';
+import { loadDifficulty, saveDifficulty, wordsForDifficulty } from './game/difficulty.js';
 import { WORDS } from './data/words.js';
 import { createSpeechDetector } from './speech/createSpeechDetector.js';
 
@@ -28,14 +30,20 @@ async function start() {
   const scenes = new SceneManager(world);
 
   const detector = createSpeechDetector();
+  let stats = loadStats();
   const game = new Game({
     words: WORDS,
     detector,
+    weightOf: (entry) => missWeight(stats, entry.word),
     onStateChange: (state) => {
       if (state === GameState.COUNTDOWN) {
         scenes.show(new PlayScene({ game, detector }));
       } else if (state === GameState.RESULTS) {
-        scenes.show(new ResultScene({ results: game.results, onPlayAgain: () => game.playAgain() }));
+        stats = recordResults(stats, game.results);
+        saveStats(stats);
+        scenes.show(
+          new ResultScene({ results: game.results, bestScore: stats.bestScore, onPlayAgain: () => game.playAgain() }),
+        );
       } else {
         scenes.current?.handleState?.(state);
       }
@@ -44,9 +52,11 @@ async function start() {
 
   scenes.show(
     new MenuScene({
-      onStart: () => {
+      difficulty: loadDifficulty(),
+      onSelectDifficulty: (id) => saveDifficulty(id),
+      onStart: (id) => {
         detector.prepare();
-        game.start();
+        game.start(wordsForDifficulty(WORDS, id));
       },
     }),
   );
